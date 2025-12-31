@@ -1,0 +1,452 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Monaco Editor CSS */
+@import 'monaco-editor/min/vs/editor/editor.main.css';
+
+/* Monaco Diff Editor CSS Variables */
+:root {
+  /* Diff editor colors - using more visible colors for testing */
+  --vscode-diffEditor-insertedTextBackground: rgba(155, 185, 85, 0.4) !important;
+  --vscode-diffEditor-removedTextBackground: rgba(255, 0, 0, 0.4) !important;
+  --vscode-diffEditor-insertedLineBackground: rgba(155, 185, 85, 0.2) !important;
+  --vscode-diffEditor-removedLineBackground: rgba(255, 0, 0, 0.2) !important;
+  --vscode-diffEditor-insertedTextBorder: rgba(155, 185, 85, 0.6) !important;
+  --vscode-diffEditor-removedTextBorder: rgba(255, 0, 0, 0.6) !important;
+  --vscode-diffEditorGutter-insertedLineBackground: rgba(155, 185, 85, 0.4) !important;
+  --vscode-diffEditorGutter-removedLineBackground: rgba(255, 0, 0, 0.4) !important;
+  --vscode-diffEditor-border: #ccc;
+  
+  /* Editor colors */
+  --vscode-editor-background: #ffffff;
+  --vscode-editor-foreground: #333333;
+  --vscode-editorLineNumber-foreground: #999999;
+  --vscode-editorLineNumber-activeForeground: #333333;
+  --vscode-editorGutter-background: #f5f5f5;
+}
+
+/* Force diff colors to show - debug styles */
+.monaco-editor .char-insert,
+.monaco-diff-editor .char-insert {
+  background-color: rgba(155, 185, 85, 0.4) !important;
+}
+
+.monaco-editor .line-insert,
+.monaco-diff-editor .line-insert {
+  background-color: rgba(155, 185, 85, 0.2) !important;
+}
+
+.monaco-editor .char-delete,
+.monaco-diff-editor .char-delete {
+  background-color: rgba(255, 0, 0, 0.4) !important;
+}
+
+.monaco-editor .line-delete,
+.monaco-diff-editor .line-delete {
+  background-color: rgba(255, 0, 0, 0.2) !important;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Component layout styles (needed since shadow DOM is disabled) */
+/* app-shell host styles */
+app-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Component-specific styles removed - now using Tailwind classes in templates */
+
+diff-viewer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+}
+
+diff-viewer .header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: white;
+}
+
+diff-viewer .file-selector {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+diff-viewer .file-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+diff-viewer .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+diff-viewer .additions {
+  color: #059669;
+}
+
+diff-viewer .deletions {
+  color: #dc2626;
+}
+
+diff-viewer .editor-container {
+  flex: 1;
+  overflow: hidden;
+}
+
+diff-viewer .loading,
+diff-viewer .error,
+diff-viewer .no-files {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6b7280;
+}
+
+diff-viewer .error {
+  color: #dc2626;
+}
+
+monaco-view {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  flex: 1;
+}
+
+monaco-view .monaco-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Range Picker Styles */
+range-picker {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: white;
+}
+
+range-picker .container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+range-picker .range-selectors {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  position: relative;
+}
+
+range-picker label {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: #374151;
+  white-space: nowrap;
+}
+
+range-picker .dropdown-container {
+  position: relative;
+  flex: 1;
+  min-width: 300px;
+}
+
+range-picker .dropdown-button {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  padding-right: 2rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  text-align: left;
+  min-height: 36px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  background: white;
+  color: #111827;
+  position: relative;
+}
+
+range-picker .dropdown-button:hover {
+  border-color: #9ca3af;
+}
+
+range-picker .dropdown-button:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+range-picker .dropdown-arrow {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.2s;
+  width: 12px;
+  height: 12px;
+}
+
+range-picker .dropdown-arrow.open {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+range-picker .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 0.25rem;
+}
+
+range-picker .dropdown-item {
+  padding: 0.625rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  align-items: start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25;
+}
+
+range-picker .dropdown-item:last-child {
+  border-bottom: none;
+}
+
+range-picker .dropdown-item:hover {
+  background: #f9fafb;
+}
+
+range-picker .dropdown-item.selected {
+  background: #eff6ff;
+}
+
+range-picker .commit-hash {
+  font-family: monospace;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+range-picker .commit-subject {
+  color: #111827;
+  font-size: 0.75rem;
+  flex: 1;
+  min-width: 200px;
+  word-break: break-word;
+}
+
+range-picker .commit-refs {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+range-picker .ref-badge {
+  padding: 0.125rem 0.375rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+range-picker .ref-badge.branch {
+  background: #dcfce7;
+  color: #166534;
+}
+
+range-picker .ref-badge.tag {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+range-picker .loading,
+range-picker .error {
+  font-style: italic;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+range-picker .error {
+  color: #dc2626;
+}
+
+range-picker .commit-button-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-right: 1.5rem;
+}
+
+
+/* Monaco view note popup */
+monaco-view .note-box {
+  position: fixed !important;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 0.75rem;
+  z-index: 10001;
+  width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+monaco-view .note-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+monaco-view .note-box-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+monaco-view .note-box-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: #6b7280;
+  padding: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+monaco-view .note-box-close:hover {
+  color: #111827;
+}
+
+monaco-view .note-line-preview {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-family: monospace;
+  font-size: 0.75rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+monaco-view .note-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+monaco-view .note-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+monaco-view .note-box-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+monaco-view .note-btn {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: none;
+}
+
+monaco-view .note-btn-primary {
+  background: #2563eb;
+  color: white;
+}
+
+monaco-view .note-btn-primary:hover {
+  background: #1d4ed8;
+}
+
+monaco-view .note-btn-secondary {
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+monaco-view .note-btn-secondary:hover {
+  background: #f3f4f6;
+}
+
+/* Glyph margin decoration styles - speech bubble icon that appears on hover */
+monaco-view .comment-glyph-decoration {
+  width: 16px !important;
+  height: 18px !important;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+monaco-view .comment-glyph-decoration:before {
+  content: '💬';
+  font-size: 12px;
+  line-height: 18px;
+  width: 16px;
+  height: 18px;
+  display: block;
+  text-align: center;
+}
+
+monaco-view .comment-glyph-decoration.hover-visible {
+  opacity: 1;
+}
