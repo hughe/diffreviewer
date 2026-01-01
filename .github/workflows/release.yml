@@ -1,0 +1,100 @@
+---
+name: Release
+
+'on':
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            binary_name: diffreviewer-linux-amd64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+            binary_name: diffreviewer-linux-arm64
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            binary_name: diffreviewer-darwin-amd64
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            binary_name: diffreviewer-darwin-arm64
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            binary_name: diffreviewer-windows-amd64.exe
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.5'
+
+      - name: Install frontend dependencies
+        working-directory: ./web
+        run: npm ci
+
+      - name: Build frontend
+        run: make build-frontend
+
+      - name: Build backend
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          mkdir -p bin
+          rm -rf cmd/diffreviewer/web-dist
+          cp -r web/dist cmd/diffreviewer/web-dist
+          go build -o bin/${{ matrix.binary_name }} ./cmd/diffreviewer
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.binary_name }}
+          path: bin/${{ matrix.binary_name }}
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Extract version from tag (v1.2.3 -> 1.2.3)
+          VERSION=${GITHUB_REF#refs/tags/v}
+
+          # Create release
+          gh release create "v${VERSION}" \
+            --repo ${{ github.repository }} \
+            --title "Release v${VERSION}" \
+            --generate-notes \
+            artifacts/*/*
