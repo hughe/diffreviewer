@@ -75,10 +75,21 @@ DiffReviewer integrates seamlessly with [Claude Code](https://claude.com/code) v
    ```bash
    mkdir -p .claude/commands
    ```
+   
+   Or in your home directory:
+   ```bash
+   mkdir -p ~/.claude/commands
+   ```
+   
 
 2. Copy the `diffr.md` command file:
    ```bash
    cp /path/to/diffreviewer/.claude/commands/diffr.md .claude/commands/
+   ```
+   
+   Or 
+   ```bash
+   cp /path/to/diffreviewer/.claude/commands/diffr.md ~/.claude/commands/
    ```
 
 3. Ensure `diffreviewer` is installed and in your PATH:
@@ -277,7 +288,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for development guidelines.
 
 ## License
 
-MIT License - see LICENSE file for details.
+Apache License 2.0 - see LICENSE file for details.
 
 ## Project Status
 
