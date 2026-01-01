@@ -19,7 +19,6 @@ A standalone CLI tool for reviewing git diffs with a web UI and markdown notes e
 ### Coming Soon
 
 - Line-specific notes with Monaco integration
-- File editing and saving
 - Keyboard shortcuts for navigation
 - Dark mode support
 
@@ -65,6 +64,44 @@ make install
 - npm (comes with Node.js)
 
 ## Usage
+
+### With Claude Code
+
+DiffReviewer integrates seamlessly with [Claude Code](https://claude.com/code) via a custom command.
+
+**Setup:**
+
+1. Create a `.claude/commands/` directory in your project root:
+   ```bash
+   mkdir -p .claude/commands
+   ```
+
+2. Copy the `diffr.md` command file:
+   ```bash
+   cp /path/to/diffreviewer/.claude/commands/diffr.md .claude/commands/
+   ```
+
+3. Ensure `diffreviewer` is installed and in your PATH:
+   ```bash
+   # From the diffreviewer source directory
+   make install
+   # Or manually copy to a directory in your PATH
+   cp bin/diffreviewer /usr/local/bin/
+   ```
+
+**Usage:**
+
+In your Claude Code session:
+```bash
+/diffr
+```
+
+This will:
+1. Start the DiffReviewer server on your local machine
+2. Open the web UI in your browser
+3. Wait for you to complete your review
+4. Capture your review notes and present them back to Claude
+5. Optionally have Claude act on your feedback
 
 ### Basic Usage
 
