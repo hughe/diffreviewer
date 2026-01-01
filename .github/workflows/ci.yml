@@ -36,11 +36,11 @@ jobs:
       - name: Build frontend
         run: make build-frontend
 
-      - name: Run Go tests
-        run: make test
-
       - name: Build backend
         run: make build-backend
+
+      - name: Run Go tests
+        run: make test
 
       - name: Verify binary exists (Unix)
         if: runner.os != 'Windows'
