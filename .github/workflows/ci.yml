@@ -55,10 +55,10 @@ jobs:
       - name: Verify binary exists (Windows)
         if: runner.os == 'Windows'
         run: |
-          if (!(Test-Path bin/diffreviewer.exe)) {
-            Write-Error "Binary not found at bin/diffreviewer.exe"
+          if (!(Test-Path bin/diffreviewer)) {
+            Write-Error "Binary not found at bin/diffreviewer"
             exit 1
           }
           Write-Output "Binary built successfully"
-          Get-Item bin/diffreviewer.exe | Format-List
+          Get-Item bin/diffreviewer | Format-List
         shell: pwsh
