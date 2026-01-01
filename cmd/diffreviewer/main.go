@@ -54,19 +54,15 @@ func main() {
 		}
 		changedCommit = changed
 	} else if len(args) == 1 {
-		// Only changed commit provided, use HEAD~1 as base
-		base, err := git.ResolveRef(*repoDir, "HEAD~1")
+		// Only base commit provided, compare to working directory (CURRENT)
+		base, err := git.ResolveRef(*repoDir, args[0])
 		if err != nil {
-			log.Fatalf("Failed to resolve HEAD~1: %v", err)
+			log.Fatalf("Invalid base ref %q: %v", args[0], err)
 		}
 		baseCommit = base
 
-		// Resolve the provided ref
-		changed, err := git.ResolveRef(*repoDir, args[0])
-		if err != nil {
-			log.Fatalf("Invalid changed ref %q: %v", args[0], err)
-		}
-		changedCommit = changed
+		// Empty string signals working directory comparison
+		changedCommit = ""
 	} else {
 		// Both commits provided
 		base, err := git.ResolveRef(*repoDir, args[0])
@@ -174,7 +170,11 @@ func main() {
 	}()
 
 	fmt.Fprintf(os.Stderr, "DiffReviewer starting on http://localhost%s\n", addr)
-	fmt.Fprintf(os.Stderr, "Comparing %s...%s\n", baseCommit[:8], changedCommit[:8])
+	if changedCommit == "" {
+		fmt.Fprintf(os.Stderr, "Comparing %s...CURRENT (working directory)\n", baseCommit[:8])
+	} else {
+		fmt.Fprintf(os.Stderr, "Comparing %s...%s\n", baseCommit[:8], changedCommit[:8])
+	}
 	if *notesFile != "" {
 		fmt.Fprintf(os.Stderr, "Notes will be saved to: %s\n", *notesFile)
 	} else {
