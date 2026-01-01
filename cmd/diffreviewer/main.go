@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -24,6 +26,33 @@ import (
 //go:embed all:web-dist
 var webDist embed.FS
 
+// tryFindPort attempts to find an available port in the range 2000-10000
+func tryFindPort() (int, error) {
+	const (
+		minPort = 2000
+		maxPort = 10000
+		maxTries = 50
+	)
+
+	tried := make(map[int]bool)
+	for i := 0; i < maxTries; i++ {
+		port := minPort + rand.Intn(maxPort-minPort+1)
+		if tried[port] {
+			continue
+		}
+		tried[port] = true
+
+		// Try to bind to this port
+		listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+		if err == nil {
+			listener.Close()
+			return port, nil
+		}
+	}
+
+	return 0, fmt.Errorf("could not find available port after %d attempts", maxTries)
+}
+
 func main() {
 	var (
 		port          = flag.Int("port", 8000, "Port number")
@@ -34,6 +63,14 @@ func main() {
 	)
 
 	flag.Parse()
+
+	// Track if port was explicitly set by user
+	portExplicitlySet := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "port" {
+			portExplicitlySet = true
+		}
+	})
 
 	// Get commits from remaining args
 	args := flag.Args()
@@ -133,8 +170,11 @@ func main() {
 	}
 	mux.Handle("/", http.FileServer(http.FS(distFS)))
 
+	// Determine which port to use
+	actualPort := *port
+
 	// Create HTTP server
-	addr := fmt.Sprintf(":%d", *port)
+	addr := fmt.Sprintf(":%d", actualPort)
 	server := &http.Server{
 		Addr:    addr,
 		Handler: mux,
@@ -169,7 +209,28 @@ func main() {
 		}
 	}()
 
-	fmt.Fprintf(os.Stderr, "DiffReviewer starting on http://localhost%s\n", addr)
+	// Try to start server, with port retry if needed
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		// If port was not explicitly set and we failed to bind, try random ports
+		if !portExplicitlySet {
+			newPort, findErr := tryFindPort()
+			if findErr != nil {
+				log.Fatalf("Failed to find available port: %v", findErr)
+			}
+			actualPort = newPort
+			addr = fmt.Sprintf(":%d", actualPort)
+			server.Addr = addr
+			listener, err = net.Listen("tcp", addr)
+			if err != nil {
+				log.Fatalf("Failed to start server on port %d: %v", actualPort, err)
+			}
+		} else {
+			log.Fatalf("Failed to start server on port %d: %v", actualPort, err)
+		}
+	}
+
+	fmt.Fprintf(os.Stderr, "DiffReviewer starting on http://localhost:%d\n", actualPort)
 	if changedCommit == "" {
 		fmt.Fprintf(os.Stderr, "Comparing %s...CURRENT (working directory)\n", baseCommit[:8])
 	} else {
@@ -181,7 +242,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Notes will be printed to stdout on exit")
 	}
 
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 }
