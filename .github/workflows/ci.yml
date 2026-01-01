@@ -9,7 +9,10 @@ name: CI
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
@@ -41,7 +44,8 @@ jobs:
       - name: Build backend
         run: make build-backend
 
-      - name: Verify binary exists
+      - name: Verify binary exists (Unix)
+        if: runner.os != 'Windows'
         run: |
           if [ ! -f bin/diffreviewer ]; then
             echo "Error: Binary not found at bin/diffreviewer"
@@ -49,3 +53,14 @@ jobs:
           fi
           echo "Binary built successfully"
           ls -lh bin/diffreviewer
+
+      - name: Verify binary exists (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          if (!(Test-Path bin/diffreviewer.exe)) {
+            Write-Error "Binary not found at bin/diffreviewer.exe"
+            exit 1
+          }
+          Write-Output "Binary built successfully"
+          Get-Item bin/diffreviewer.exe | Format-List
+        shell: pwsh
