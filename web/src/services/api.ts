@@ -35,7 +35,9 @@ export async function fetchDiff(from?: string, to?: string): Promise<DiffFile[]>
       throw new Error(`Failed to fetch diff: ${response.statusText}`);
     }
 
-    return await response.json();
+    const result = await response.json();
+    // Ensure we always return an array, even if the backend returns null
+    return Array.isArray(result) ? result : [];
   } catch (error) {
     console.error('Error fetching diff:', error);
     throw error;
@@ -127,7 +129,9 @@ export async function fetchCommitHistory(
       throw new Error(`Failed to fetch commit history: ${response.statusText}`);
     }
 
-    return await response.json();
+    const result = await response.json();
+    // Ensure we always return an array, even if the backend returns null
+    return Array.isArray(result) ? result : [];
   } catch (error) {
     console.error('Error fetching commit history:', error);
     throw error;
