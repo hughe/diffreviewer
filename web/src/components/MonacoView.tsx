@@ -288,6 +288,25 @@ export function MonacoView({
     }
   };
 
+  // Cleanup decorations and refs when code or filename changes
+  useEffect(() => {
+    return () => {
+      // Clear decorations before models are disposed
+      if (modifiedDecorationsRef.current) {
+        try {
+          modifiedDecorationsRef.current.clear();
+        } catch (error) {
+          // Model may already be disposed, ignore error
+          console.debug('Error clearing decorations during cleanup:', error);
+        }
+        modifiedDecorationsRef.current = null;
+      }
+      // Clear refs to avoid holding references to disposed models
+      modifiedModelRef.current = null;
+      clearAllVisibleGlyphs();
+    };
+  }, [originalCode, modifiedCode, _originalFilename, modifiedFilename]);
+
   // Update decorations when code changes
   useEffect(() => {
     if (editorRef.current && modifiedModelRef.current) {
