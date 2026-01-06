@@ -66,6 +66,11 @@ func GetFileContent(repoDir, hash, path string) (string, error) {
 		fullPath := filepath.Join(repoDir, path)
 		content, err := os.ReadFile(fullPath)
 		if err != nil {
+			// If file doesn't exist, it's likely a deleted file (status "D")
+			// Return empty content instead of error
+			if os.IsNotExist(err) {
+				return "", nil
+			}
 			return "", fmt.Errorf("error reading file from working directory: %w", err)
 		}
 		return string(content), nil
