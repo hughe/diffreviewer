@@ -222,8 +222,6 @@ export function MonacoView({
         readOnly: !editableRight,
       });
 
-      modifiedDecorationsRef.current = modifiedEditor.createDecorationsCollection([]);
-
       // Setup keyboard shortcuts
       modifiedEditor.addCommand(
         monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
@@ -288,34 +286,27 @@ export function MonacoView({
     }
   };
 
-  // Cleanup decorations and refs when code or filename changes
+  // Update decorations when code or filename changes
   useEffect(() => {
-    return () => {
-      // Clear decorations before models are disposed
-      if (modifiedDecorationsRef.current) {
-        try {
-          modifiedDecorationsRef.current.clear();
-        } catch (error) {
-          // Model may already be disposed, ignore error
-          console.debug('Error clearing decorations during cleanup:', error);
-        }
-        modifiedDecorationsRef.current = null;
-      }
-      // Clear refs to avoid holding references to disposed models
-      modifiedModelRef.current = null;
-      clearAllVisibleGlyphs();
-    };
-  }, [originalCode, modifiedCode, _originalFilename, modifiedFilename]);
+    if (editorRef.current) {
+      const modifiedEditor = editorRef.current.getModifiedEditor();
+      const modifiedModel = modifiedEditor?.getModel();
 
-  // Update decorations when code changes
-  useEffect(() => {
-    if (editorRef.current && modifiedModelRef.current) {
-      const monaco = (window as any).monaco;
-      if (monaco) {
-        initializeGlyphDecorations(monaco, editorRef.current, modifiedModelRef.current);
+      if (modifiedModel && modifiedEditor) {
+        // Update ref to new model
+        modifiedModelRef.current = modifiedModel;
+
+        // Create fresh decorations collection for the new model
+        // This ensures we don't hold references to disposed models
+        modifiedDecorationsRef.current = modifiedEditor.createDecorationsCollection([]);
+
+        const monaco = (window as any).monaco;
+        if (monaco) {
+          initializeGlyphDecorations(monaco, editorRef.current, modifiedModel);
+        }
       }
     }
-  }, [modifiedCode]);
+  }, [originalCode, modifiedCode, _originalFilename, modifiedFilename]);
 
   const language = getLanguageForFile(modifiedFilename);
 
@@ -331,6 +322,10 @@ export function MonacoView({
         original={originalCode}
         modified={modifiedCode}
         language={language}
+        originalModelPath={_originalFilename ? `file:///${_originalFilename}` : undefined}
+        modifiedModelPath={modifiedFilename ? `file:///${modifiedFilename}` : undefined}
+        keepCurrentOriginalModel={true}
+        keepCurrentModifiedModel={true}
         theme={theme === 'dark' ? 'vs-dark' : 'vs'}
         onMount={handleEditorDidMount}
         options={{
