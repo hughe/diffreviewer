@@ -30,3 +30,6 @@ install: build
 test:
 	@echo "Running tests..."
 	go test -v ./...
+
+builder-image:
+	cd docker && docker build . -t diffreviewer-giverny-base
