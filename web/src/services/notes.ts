@@ -17,11 +17,11 @@ let notesCache: NotesResponse | null = null;
 export async function fetchNotes(): Promise<NotesResponse> {
   try {
     const response = await fetch('./api/notes');
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch notes: ${response.statusText}`);
     }
-    
+
     const data: NotesResponse = await response.json();
     notesCache = data;
     return data;
@@ -49,11 +49,11 @@ export async function addNote(
       },
       body: JSON.stringify(note),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to add note: ${response.statusText}`);
     }
-    
+
     // Update local cache
     if (notesCache) {
       const existingIndex = notesCache.lineNotes.findIndex(
@@ -96,11 +96,11 @@ export async function deleteNote(file: string, line: number): Promise<void> {
       },
       body: JSON.stringify({ file, line }),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to delete note: ${response.statusText}`);
     }
-    
+
     // Update local cache
     if (notesCache) {
       notesCache.lineNotes = notesCache.lineNotes.filter(
@@ -126,11 +126,11 @@ export async function updateGeneralNotes(text: string): Promise<void> {
       },
       body: JSON.stringify(request),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to update general notes: ${response.statusText}`);
     }
-    
+
     // Update local cache
     if (notesCache) {
       notesCache.generalNotes = text;
@@ -147,11 +147,11 @@ export async function updateGeneralNotes(text: string): Promise<void> {
 export async function fetchGeneralNotes(): Promise<string> {
   try {
     const response = await fetch('./api/general-notes');
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch general notes: ${response.statusText}`);
     }
-    
+
     const data: GeneralNotesResponse = await response.json();
     return data.text;
   } catch (error) {

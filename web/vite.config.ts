@@ -1,11 +1,9 @@
 import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 import path from 'path'
-import monacoEditorPlugin from 'vite-plugin-monaco-editor-esm'
 
 export default defineConfig({
-  plugins: [
-    monacoEditorPlugin({})
-  ],
+  plugins: [react()],
   root: '.',
   build: {
     outDir: 'dist',

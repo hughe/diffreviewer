@@ -2,8 +2,6 @@
 /bin/
 /web/dist/
 /web/node_modules/
-/web-react/dist/
-/web-react/node_modules/
 
 # Embedded web assets (copied during build)
 /cmd/diffreviewer/web/

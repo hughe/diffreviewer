@@ -17,24 +17,24 @@ export async function fetchDiff(from?: string, to?: string): Promise<DiffFile[]>
   try {
     let url = './api/diff';
     const params = new URLSearchParams();
-    
+
     if (from) {
       params.append('from', from);
     }
     if (to) {
       params.append('to', to);
     }
-    
+
     if (params.toString()) {
       url += '?' + params.toString();
     }
-    
+
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch diff: ${response.statusText}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error fetching diff:', error);
@@ -93,14 +93,14 @@ export async function saveFileContent(
       },
       body: JSON.stringify(request),
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(
         `Failed to save file: ${response.statusText} - ${errorText}`
       );
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error saving file content:', error);
@@ -120,13 +120,13 @@ export async function fetchCommitHistory(
     if (initialCommit) {
       url += `?initialCommit=${encodeURIComponent(initialCommit)}`;
     }
-    
+
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch commit history: ${response.statusText}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error fetching commit history:', error);
@@ -140,11 +140,11 @@ export async function fetchCommitHistory(
 export async function fetchBaseCommit(): Promise<string> {
   try {
     const response = await fetch('./api/base-commit');
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch base commit: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
     return data.base_commit;
   } catch (error) {
@@ -168,11 +168,11 @@ export async function shutdown(
       },
       body: JSON.stringify(request),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to shutdown: ${response.statusText}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error during shutdown:', error);
