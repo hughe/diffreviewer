@@ -32,4 +32,4 @@ test:
 	go test -v ./...
 
 builder-image:
-	cd docker && docker build . -t diffreviewer-giverny-base
+	cd docker && docker build . -t diffreviewer-dev
