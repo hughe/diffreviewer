@@ -10,3 +10,8 @@
 # Notes output
 *.notes.md
 *~
+
+# Playwright
+/node_modules/
+/test-results/
+/playwright-report/

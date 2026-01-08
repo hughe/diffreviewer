@@ -281,6 +281,7 @@ export function MonacoView({
 
       // Initialize glyph decorations
       if (modifiedModel) {
+        modifiedDecorationsRef.current = modifiedEditor.createDecorationsCollection([]);
         initializeGlyphDecorations(monaco, editor, modifiedModel);
       }
     }
