@@ -1,4 +1,4 @@
-.PHONY: all build build-frontend build-backend clean dev install test
+.PHONY: all build build-frontend build-backend clean dev install test test-e2e install-test-deps
 
 all: build
 
@@ -30,6 +30,14 @@ install: build
 test:
 	@echo "Running tests..."
 	go test -v ./...
+
+install-test-deps:
+	@echo "Installing test dependencies..."
+	npm install
+
+test-e2e: install-test-deps
+	@echo "Running Playwright e2e tests..."
+	npx playwright test
 
 builder-image:
 	cd docker && docker build . -t diffreviewer-dev

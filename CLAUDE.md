@@ -29,8 +29,14 @@ make clean
 # Install to /usr/local/bin
 make install
 
-# Run tests
+# Run Go tests
 make test
+
+# Install test dependencies (Playwright)
+make install-test-deps
+
+# Run end-to-end tests (Playwright)
+make test-e2e
 ```
 
 ### Build Process Details
