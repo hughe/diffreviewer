@@ -3,7 +3,9 @@ package git
 import (
 	"bufio"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -53,16 +55,26 @@ func GetDiff(repoDir, from, to string) ([]DiffFile, error) {
 }
 
 // GetFileContent returns the content of a file at a specific git hash
-// If hash is all zeros (0000000000000000000000000000000000000000), this indicates:
-// - A deleted file (status "D") - the file doesn't exist in the new version
-// - Returns empty content for deleted files
+// If hash is all zeros (0000000000000000000000000000000000000000), this indicates either:
+// - A working directory file (when path is provided) - read from disk
+// - A deleted file (when path is empty or file doesn't exist) - return empty content
 func GetFileContent(repoDir, hash, path string) (string, error) {
-	// Check if hash is all zeros - this means the file is deleted or doesn't exist
+	// Check if hash is all zeros - working directory file or deleted file
 	if hash == "0000000000000000000000000000000000000000" {
-		// For deleted files, return empty content
-		// This can happen when:
-		// 1. Comparing commits where a file was deleted (new_hash = all zeros)
-		// 2. Comparing to working directory where a file was deleted from working tree
+		if path != "" {
+			// Try to read from working directory
+			fullPath := filepath.Join(repoDir, path)
+			content, err := os.ReadFile(fullPath)
+			if err != nil {
+				if os.IsNotExist(err) {
+					// File was deleted from working directory
+					return "", nil
+				}
+				return "", fmt.Errorf("error reading working directory file: %w", err)
+			}
+			return string(content), nil
+		}
+		// No path provided - deleted file
 		return "", nil
 	}
 

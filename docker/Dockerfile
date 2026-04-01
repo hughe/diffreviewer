@@ -35,3 +35,7 @@ RUN npm install -g @playwright/test @playwright/mcp
 # Install playwright browsers (headless)
 RUN npx playwright install --with-deps chromium
 
+# Make globally installed packages resolvable from project directories
+# (the project's playwright.config.ts imports from @playwright/test)
+ENV NODE_PATH=/usr/local/lib/node_modules
+
