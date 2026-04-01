@@ -51,7 +51,21 @@ func GetDiff(repoDir, from, to string) ([]DiffFile, error) {
 		return nil, fmt.Errorf("error executing git diff --numstat: %w - %s", err, string(numstatOut))
 	}
 
-	return parseRawDiffWithNumstat(string(rawOut), string(numstatOut))
+	files, err := parseRawDiffWithNumstat(string(rawOut), string(numstatOut))
+	if err != nil {
+		return nil, err
+	}
+
+	// When comparing against working directory, also include untracked files
+	if to == "" {
+		untrackedFiles, err := getUntrackedFiles(repoDir)
+		if err != nil {
+			return nil, fmt.Errorf("error getting untracked files: %w", err)
+		}
+		files = append(files, untrackedFiles...)
+	}
+
+	return files, nil
 }
 
 // GetFileContent returns the content of a file at a specific git hash
@@ -203,6 +217,55 @@ func getCommitInfo(repoDir, commit string) (GitLogEntry, error) {
 // GetBaseCommitRef returns the base commit for diffing (HEAD by default)
 func GetBaseCommitRef(repoDir string) (string, error) {
 	return ResolveRef(repoDir, "HEAD")
+}
+
+// getUntrackedFiles returns DiffFile entries for untracked files in the working directory
+func getUntrackedFiles(repoDir string) ([]DiffFile, error) {
+	cmd := exec.Command("git", "-C", repoDir, "ls-files", "--others", "--exclude-standard")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("error listing untracked files: %w - %s", err, string(out))
+	}
+
+	output := strings.TrimSpace(string(out))
+	if output == "" {
+		return nil, nil
+	}
+
+	zeroHash := "0000000000000000000000000000000000000000"
+	var files []DiffFile
+
+	scanner := bufio.NewScanner(strings.NewReader(output))
+	for scanner.Scan() {
+		path := scanner.Text()
+		if path == "" {
+			continue
+		}
+
+		// Count lines for additions stat
+		fullPath := filepath.Join(repoDir, path)
+		content, err := os.ReadFile(fullPath)
+		additions := 0
+		if err == nil {
+			additions = strings.Count(string(content), "\n")
+			if len(content) > 0 && content[len(content)-1] != '\n' {
+				additions++ // count last line without trailing newline
+			}
+		}
+
+		files = append(files, DiffFile{
+			Path:      path,
+			OldMode:   "000000",
+			NewMode:   "100644",
+			OldHash:   zeroHash,
+			NewHash:   zeroHash,
+			Status:    "A",
+			Additions: additions,
+			Deletions: 0,
+		})
+	}
+
+	return files, nil
 }
 
 func parseRawDiffWithNumstat(rawOutput, numstatOutput string) ([]DiffFile, error) {
