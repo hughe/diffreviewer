@@ -11,7 +11,9 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -25,6 +27,36 @@ import (
 //
 //go:embed all:web-dist
 var webDist embed.FS
+
+// openBrowserWindow opens the URL in a new browser window (not a tab).
+// Best-effort: failures are silently ignored.
+func openBrowserWindow(url string) {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "darwin":
+		// AppleScript tells the default browser to open a new window
+		cmd = exec.Command("osascript", "-e",
+			fmt.Sprintf(`tell application "System Events" to set frontApp to name of first application process whose frontmost is true
+tell application frontApp to open location %q`, url))
+		// Fallback: just use 'open' which often opens a new window
+		if err := cmd.Start(); err != nil {
+			exec.Command("open", url).Start()
+		}
+		return
+	case "windows":
+		cmd = exec.Command("cmd", "/c", "start", url)
+	default: // linux, freebsd, etc.
+		// Try common browsers with --new-window, fall back to xdg-open
+		for _, browser := range []string{"google-chrome", "chromium-browser", "chromium", "firefox"} {
+			if path, err := exec.LookPath(browser); err == nil {
+				exec.Command(path, "--new-window", url).Start()
+				return
+			}
+		}
+		cmd = exec.Command("xdg-open", url)
+	}
+	cmd.Start()
+}
 
 // tryFindPort attempts to find an available port in the range 2000-10000
 func tryFindPort() (int, error) {
@@ -58,6 +90,7 @@ func main() {
 		port          = flag.Int("port", 8000, "Port number")
 		notesFile     = flag.String("notes", "", "Notes file path (optional, if not specified notes go to stdout)")
 		repoDir       = flag.String("repo", ".", "Repository path")
+		noBrowser     = flag.Bool("no-browser", false, "Don't open browser automatically")
 		baseCommit    string
 		changedCommit string
 	)
@@ -240,6 +273,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Notes will be saved to: %s\n", *notesFile)
 	} else {
 		fmt.Fprintln(os.Stderr, "Notes will be printed to stdout on exit")
+	}
+
+	if !*noBrowser {
+		serverURL := fmt.Sprintf("http://localhost:%d", actualPort)
+		openBrowserWindow(serverURL)
 	}
 
 	if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
